@@ -8,7 +8,19 @@ from fastmcp.exceptions import ToolError
 
 from reclaim_mcp import __version__
 from reclaim_mcp.profiles import is_tool_enabled
-from reclaim_mcp.tools import analytics, events, focus, habits, moments, scheduling, tasks
+from reclaim_mcp.tools import (
+    analytics,
+    event_planner,
+    events,
+    focus,
+    habits,
+    moments,
+    one_on_ones,
+    people,
+    schedule_policies,
+    scheduling,
+    tasks,
+)
 
 mcp = FastMCP("Reclaim.ai")
 
@@ -1066,6 +1078,255 @@ async def reschedule_focus_block(
         start_time=start_time,
         end_time=end_time,
     )
+
+
+# ---------------------------------------------------------------------------
+# One-on-Ones (Phase 12 expansion)
+# ---------------------------------------------------------------------------
+
+
+@tool
+async def list_one_on_ones(
+    ctx: Context, include_instances: bool = False
+) -> list[dict]:
+    """List recurring 1:1 meeting series. Set include_instances=True to embed
+    scheduled instance details in the response."""
+    await ctx.info("Listing 1:1 series")
+    return await one_on_ones.list_one_on_ones(include_instances=include_instances)
+
+
+@tool
+async def get_one_on_one(ctx: Context, one_on_one_id: int) -> dict:
+    """Get a single 1:1 series by id."""
+    await ctx.info(f"Fetching 1:1 {one_on_one_id}")
+    return await one_on_ones.get_one_on_one(one_on_one_id=one_on_one_id)
+
+
+@tool
+async def create_one_on_one(
+    ctx: Context,
+    title: str,
+    invitee_email: str,
+    duration_minutes: int = 30,
+    recurrence: str = "WEEKLY",
+    ideal_time: Optional[str] = None,
+    notes: Optional[str] = None,
+) -> dict:
+    """Create a recurring 1:1 with someone. recurrence: WEEKLY, BIWEEKLY, MONTHLY."""
+    await ctx.info(f"Creating 1:1 '{title}' with {invitee_email}")
+    return await one_on_ones.create_one_on_one(
+        title=title,
+        invitee_email=invitee_email,
+        duration_minutes=duration_minutes,
+        recurrence=recurrence,
+        ideal_time=ideal_time,
+        notes=notes,
+    )
+
+
+@tool
+async def update_one_on_one(
+    ctx: Context,
+    one_on_one_id: int,
+    title: Optional[str] = None,
+    duration_minutes: Optional[int] = None,
+    recurrence: Optional[str] = None,
+    ideal_time: Optional[str] = None,
+    notes: Optional[str] = None,
+) -> dict:
+    """Update properties on a 1:1 meeting series."""
+    await ctx.info(f"Updating 1:1 {one_on_one_id}")
+    return await one_on_ones.update_one_on_one(
+        one_on_one_id=one_on_one_id,
+        title=title,
+        duration_minutes=duration_minutes,
+        recurrence=recurrence,
+        ideal_time=ideal_time,
+        notes=notes,
+    )
+
+
+@tool
+async def delete_one_on_one(ctx: Context, one_on_one_id: int) -> bool:
+    """Delete a recurring 1:1 series."""
+    await ctx.info(f"Deleting 1:1 {one_on_one_id}")
+    return await one_on_ones.delete_one_on_one(one_on_one_id=one_on_one_id)
+
+
+@tool
+async def list_one_on_one_instances(ctx: Context, one_on_one_id: int) -> list[dict]:
+    """List scheduled calendar instances of a 1:1 series."""
+    await ctx.info(f"Listing instances for 1:1 {one_on_one_id}")
+    return await one_on_ones.list_one_on_one_instances(one_on_one_id=one_on_one_id)
+
+
+@tool
+async def reschedule_one_on_one(
+    ctx: Context,
+    one_on_one_id: int,
+    event_id: str,
+    new_start: Optional[str] = None,
+) -> dict:
+    """Reschedule a single 1:1 instance. Omit new_start to let the solver pick."""
+    await ctx.info(f"Rescheduling 1:1 {one_on_one_id} event {event_id}")
+    return await one_on_ones.reschedule_one_on_one(
+        one_on_one_id=one_on_one_id,
+        event_id=event_id,
+        new_start=new_start,
+    )
+
+
+@tool
+async def skip_one_on_one_day(
+    ctx: Context, one_on_one_id: int, event_id: str
+) -> dict:
+    """Skip a single instance day of a 1:1."""
+    await ctx.info(f"Skipping 1:1 day for {one_on_one_id} event {event_id}")
+    return await one_on_ones.skip_one_on_one_day(
+        one_on_one_id=one_on_one_id, event_id=event_id
+    )
+
+
+@tool
+async def skip_one_on_one_week(
+    ctx: Context, one_on_one_id: int, event_id: str
+) -> dict:
+    """Skip a whole week of a 1:1."""
+    await ctx.info(f"Skipping 1:1 week for {one_on_one_id} event {event_id}")
+    return await one_on_ones.skip_one_on_one_week(
+        one_on_one_id=one_on_one_id, event_id=event_id
+    )
+
+
+@tool
+async def list_one_on_one_invites(ctx: Context) -> list[dict]:
+    """List pending 1:1 invitations sent by the user."""
+    await ctx.info("Listing 1:1 invites")
+    return await one_on_ones.list_one_on_one_invites()
+
+
+@tool
+async def get_one_on_one_suggestions(ctx: Context) -> list[dict]:
+    """Get auto-detected suggestions for new 1:1s based on past meetings."""
+    await ctx.info("Fetching 1:1 suggestions")
+    return await one_on_ones.get_one_on_one_suggestions()
+
+
+# ---------------------------------------------------------------------------
+# People directory
+# ---------------------------------------------------------------------------
+
+
+@tool
+async def list_people(ctx: Context) -> list[dict]:
+    """List all people in your Reclaim directory."""
+    await ctx.info("Listing people")
+    return await people.list_people()
+
+
+@tool
+async def sync_people(ctx: Context) -> dict:
+    """Trigger a sync of the people directory from connected calendars."""
+    await ctx.info("Syncing people directory")
+    return await people.sync_people()
+
+
+@tool
+async def list_people_subscriptions(ctx: Context) -> list[dict]:
+    """List people you're subscribed to (calendar shares / smart meetings)."""
+    await ctx.info("Listing people subscriptions")
+    return await people.list_people_subscriptions()
+
+
+# ---------------------------------------------------------------------------
+# Event planner — pin, unpin, categorize, bulk reschedule
+# ---------------------------------------------------------------------------
+
+
+@tool
+async def pin_event(ctx: Context, calendar_id: int, event_id: str) -> dict:
+    """Pin a calendar event so Reclaim's solver won't move it."""
+    await ctx.info(f"Pinning event {event_id} on calendar {calendar_id}")
+    return await event_planner.pin_event(calendar_id=calendar_id, event_id=event_id)
+
+
+@tool
+async def unpin_event(ctx: Context, calendar_id: int, event_id: str) -> dict:
+    """Unpin a previously-pinned event."""
+    await ctx.info(f"Unpinning event {event_id}")
+    return await event_planner.unpin_event(calendar_id=calendar_id, event_id=event_id)
+
+
+@tool
+async def categorize_event(
+    ctx: Context,
+    calendar_id: int,
+    event_id: str,
+    category: str,
+) -> dict:
+    """Tag a calendar event with a Reclaim category (e.g. WORK, PERSONAL)."""
+    await ctx.info(f"Categorizing event {event_id} as {category}")
+    return await event_planner.categorize_event(
+        calendar_id=calendar_id, event_id=event_id, category=category
+    )
+
+
+@tool
+async def bulk_reschedule_tasks(
+    ctx: Context,
+    task_ids: list[int],
+    after: Optional[str] = None,
+) -> dict:
+    """Reschedule many tasks at once. `after` is an optional ISO timestamp."""
+    await ctx.info(f"Bulk-rescheduling {len(task_ids)} tasks")
+    return await event_planner.bulk_reschedule_tasks(task_ids=task_ids, after=after)
+
+
+# ---------------------------------------------------------------------------
+# Schedule policies
+# ---------------------------------------------------------------------------
+
+
+@tool
+async def list_schedule_policies(ctx: Context) -> list[dict]:
+    """List all schedule policies on the account."""
+    await ctx.info("Listing schedule policies")
+    return await schedule_policies.list_schedule_policies()
+
+
+@tool
+async def get_schedule_policy(ctx: Context, policy_id: str) -> dict:
+    """Get a single schedule policy by id."""
+    await ctx.info(f"Fetching schedule policy {policy_id}")
+    return await schedule_policies.get_schedule_policy(policy_id=policy_id)
+
+
+@tool
+async def list_available_policy_types(ctx: Context) -> list[dict]:
+    """List the policy types Reclaim can create on this account."""
+    await ctx.info("Listing available policy types")
+    return await schedule_policies.list_available_policy_types()
+
+
+@tool
+async def update_schedule_policy(
+    ctx: Context, policy_id: str, body: dict
+) -> dict:
+    """Update a schedule policy with a full replacement body.
+
+    Fetch the policy first to inspect current fields, then send the full body.
+    """
+    await ctx.info(f"Updating schedule policy {policy_id}")
+    return await schedule_policies.update_schedule_policy(
+        policy_id=policy_id, body=body
+    )
+
+
+@tool
+async def get_recommended_policy(ctx: Context) -> dict:
+    """Get Reclaim's recommended default schedule policy."""
+    await ctx.info("Fetching recommended schedule policy")
+    return await schedule_policies.get_recommended_policy()
 
 
 def main() -> None:

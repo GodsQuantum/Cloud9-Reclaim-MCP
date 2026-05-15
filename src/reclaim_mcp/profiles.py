@@ -70,7 +70,7 @@ STANDARD_TOOLS: set[str] = MINIMAL_TOOLS | {
     "get_focus_insights",
 }
 
-# Full profile: All tools (49 tools)
+# Full profile: All tools
 FULL_TOOLS: set[str] = STANDARD_TOOLS | {
     # Scheduling (1)
     "find_available_times",
@@ -87,6 +87,33 @@ FULL_TOOLS: set[str] = STANDARD_TOOLS | {
     "get_habit",
     # Tasks advanced (1)
     "plan_work",
+    # One-on-Ones (11)
+    "list_one_on_ones",
+    "get_one_on_one",
+    "create_one_on_one",
+    "update_one_on_one",
+    "delete_one_on_one",
+    "list_one_on_one_instances",
+    "reschedule_one_on_one",
+    "skip_one_on_one_day",
+    "skip_one_on_one_week",
+    "list_one_on_one_invites",
+    "get_one_on_one_suggestions",
+    # People (3)
+    "list_people",
+    "sync_people",
+    "list_people_subscriptions",
+    # Event planner (4)
+    "pin_event",
+    "unpin_event",
+    "categorize_event",
+    "bulk_reschedule_tasks",
+    # Schedule policies (5)
+    "list_schedule_policies",
+    "get_schedule_policy",
+    "list_available_policy_types",
+    "update_schedule_policy",
+    "get_recommended_policy",
 }
 
 PROFILES: dict[str, set[str]] = {
