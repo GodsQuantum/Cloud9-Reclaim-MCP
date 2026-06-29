@@ -1,131 +1,111 @@
 # Tool Reference
 
-Complete reference for all 40 tools available in the Reclaim MCP Server.
+40 tools across system, tasks, events, habits, focus, scheduling, and
+analytics. Every date/time parameter accepts natural language
+(`tomorrow at 3pm`, `in 2 hours`, `next Tuesday`, `this week`), a date
+(`2026-04-20`), or ISO 8601. The server instructs Claude to call
+`get_context` first before any time-dependent tool, which anchors the
+current datetime, timezone, working hours, and task state.
 
-## Tool Profiles
+Mutation tools return an envelope:
 
-Control which tools are exposed using `RECLAIM_TOOL_PROFILE`:
+```json
+{
+  "data": { ... },
+  "summary": "Snoozed 'Draft plan' until Saturday, April 18 at 9:00 AM PDT",
+  "resolved": { "until": "2026-04-18T09:00:00-07:00" }
+}
+```
 
-| Profile | Tools | Description |
-|---------|-------|-------------|
-| `minimal` | 20 | Core tasks + habits basics |
-| `standard` | 32 | Core productivity (no niche tools) |
-| `full` | 40 | All tools (default) |
-
----
-
-## Tasks (12 tools)
-
-| Tool | Profile | Description |
-|------|---------|-------------|
-| `list_tasks` | minimal | List active tasks (excludes completed by default) |
-| `list_completed_tasks` | minimal | List completed and archived tasks |
-| `get_task` | minimal | Get a single task by ID |
-| `create_task` | minimal | Create new task for auto-scheduling |
-| `update_task` | minimal | Update existing task properties |
-| `mark_task_complete` | minimal | Mark task as complete |
-| `delete_task` | minimal | Delete a task |
-| `add_time_to_task` | standard | Log time spent on task (uses planner API) |
-| `start_task` | standard | Start working on task (timer) |
-| `stop_task` | standard | Stop working on task |
-| `prioritize_task` | standard | Elevate task priority |
-| `restart_task` | standard | Restart a completed task |
+Read tools return the underlying list or object directly.
 
 ---
 
-## Calendar Events (5 tools)
+## System (3)
 
-| Tool | Profile | Description |
-|------|---------|-------------|
-| `list_events` | minimal | List calendar events within a time range |
-| `list_personal_events` | minimal | List Reclaim-managed events (tasks, habits, focus) |
-| `get_event` | minimal | Get single event by calendar ID and event ID |
-| `set_event_rsvp` | full | Set RSVP status for event |
-| `move_event` | full | Reschedule event to new time |
+| Tool | Description |
+|------|-------------|
+| `get_context` | Current datetime, timezone, working hours today, active timer, task counts. Call this first for any scheduling flow. |
+| `health_check` | Server liveness check. |
+| `verify_connection` | Verifies the API key resolves to a Reclaim user. |
+
+## Tasks (13)
+
+| Tool | Description |
+|------|-------------|
+| `list_tasks(filter, limit, detail)` | `filter`: `active`, `unscheduled`, `in_progress`, `due_today`, `overdue`, `completed`, `all`. |
+| `get_task(task_id, detail)` | Fetch one task. |
+| `create_task(title, duration_minutes, due_at?, priority, notes?, min_chunk_minutes?, max_chunk_minutes?, snooze_until?)` | Create for auto-scheduling. |
+| `update_task(task_id, ...)` | Update any subset of fields. |
+| `complete_task(task_id)` | Mark complete. |
+| `delete_task(task_id)` | Delete permanently. |
+| `snooze_task(task_id, until?)` | Snooze with NL/date/ISO, or `until=None` to clear. |
+| `log_work(task_id, minutes, notes?)` | Log retrospective time spent. |
+| `extend_task(task_id, minutes)` | Add scheduled capacity (not worked time). |
+| `plan_task_work(task_id, at, duration_minutes)` | Pin a work block to a specific time. |
+| `start_task(task_id)` | Start the timer. |
+| `stop_task(task_id)` | Pause the timer. |
+| `restore_task(task_id)` | Revive completed or archived task. |
+
+## Events (4)
+
+| Tool | Description |
+|------|-------------|
+| `list_events(when, scope, calendar_ids?, limit, detail)` | `scope`: `all`, `external`, `personal`. |
+| `get_event(calendar_id, event_id, detail)` | Fetch one event. |
+| `rsvp_event(calendar_id, event_id, response, notify_attendees)` | `response`: `accepted`, `declined`, `tentative`, `needs_action`. |
+| `reschedule_event(event_id, start_at, end_at)` | Move an event. |
+
+## Habits (12)
+
+| Tool | Description |
+|------|-------------|
+| `list_habits(detail)` | All smart habits. |
+| `get_habit(habit_id, detail)` | Fetch one habit. |
+| `create_habit(title, ideal_time, duration_min_mins, frequency, ideal_days?, event_type, defense_aggression, duration_max_mins?, description?, enabled, time_policy_type?)` | Create a recurring habit. |
+| `update_habit(habit_id, ...)` | Update any subset. |
+| `delete_habit(habit_id)` | Delete. |
+| `set_habit_enabled(habit_id, enabled)` | Pause/resume without deleting. |
+| `complete_habit_instance(event_id)` | Mark today's occurrence done. |
+| `skip_habit_instance(event_id)` | Skip today's occurrence. |
+| `set_habit_instance_locked(event_id, locked)` | Lock/unlock a single instance. |
+| `start_habit(habit_id)` | Start timer. |
+| `stop_habit(habit_id)` | Stop timer. |
+| `convert_event_to_habit(calendar_id, event_id, ...)` | Turn a calendar event into a recurring habit. |
+
+## Focus Time (4)
+
+| Tool | Description |
+|------|-------------|
+| `get_focus_settings()` | Current focus-time config. |
+| `update_focus_settings(settings_id, ...)` | Update durations, defense, enabled. |
+| `set_focus_block_locked(calendar_id, event_id, locked)` | Lock/unlock a block. |
+| `reschedule_focus_block(calendar_id, event_id, start_at?, end_at?)` | Move, or let Reclaim pick if times omitted. |
+
+## Scheduling (2)
+
+| Tool | Description |
+|------|-------------|
+| `get_working_hours()` | All time-scheme definitions. For today only, prefer `get_context`. |
+| `find_available_times(attendees, duration_minutes, when?, limit?)` | Mutual availability across attendees. |
+
+## Analytics (2)
+
+| Tool | Description |
+|------|-------------|
+| `get_user_analytics(when, metric_name)` | `metric_name`: `DURATION_BY_CATEGORY` or `DURATION_BY_DATE_BY_CATEGORY`. |
+| `get_focus_insights(when)` | Focus-time analytics and recommendations. |
 
 ---
 
-## Smart Habits (14 tools)
+## Time parameter cheatsheet
 
-| Tool | Profile | Description |
-|------|---------|-------------|
-| `list_habits` | minimal | List all smart habits |
-| `get_habit` | minimal | Get a single habit by lineage ID |
-| `create_habit` | minimal | Create new smart habit for auto-scheduling |
-| `update_habit` | minimal | Update habit properties |
-| `delete_habit` | minimal | Delete a habit |
-| `mark_habit_done` | minimal | Mark a habit instance as done |
-| `skip_habit` | minimal | Skip a habit instance |
-| `enable_habit` | standard | Enable a disabled habit |
-| `disable_habit` | standard | Disable a habit without deleting |
-| `lock_habit_instance` | full | Lock habit instance to prevent rescheduling |
-| `unlock_habit_instance` | full | Unlock habit instance to allow rescheduling |
-| `start_habit` | full | Start a habit session now |
-| `stop_habit` | full | Stop a running habit session |
-| `convert_event_to_habit` | full | Convert calendar event to habit |
+| Parameter name | Shape | Examples |
+|----------------|-------|----------|
+| `when` | range | `today`, `this week`, `next 7 days`, `2026-04-20..2026-04-25` |
+| `due_at`, `start_at`, `end_at`, `at`, `until`, `snooze_until` | datetime | `tomorrow at 3pm`, `in 2 hours`, `next Tuesday`, `2026-04-20T15:00:00-07:00` |
+| `ideal_time` (habits only) | clock time | `09:00`, `14:30` |
 
----
-
-## Analytics (2 tools)
-
-| Tool | Profile | Description |
-|------|---------|-------------|
-| `get_user_analytics` | minimal | Personal productivity analytics (Pro plan) |
-| `get_focus_insights` | standard | Focus time analysis and recommendations (Pro plan) |
-
-**Available metrics**:
-- `DURATION_BY_CATEGORY` - Time breakdown by category
-- `DURATION_BY_DATE_BY_CATEGORY` - Daily time breakdown by category
-
----
-
-## Focus Time (5 tools)
-
-| Tool | Profile | Description |
-|------|---------|-------------|
-| `get_focus_settings` | standard | Get current focus time settings |
-| `update_focus_settings` | standard | Update focus duration and defense level |
-| `lock_focus_block` | standard | Lock focus block to prevent rescheduling |
-| `unlock_focus_block` | standard | Unlock focus block |
-| `reschedule_focus_block` | standard | Move focus block to new time |
-
----
-
-## Utility (2 tools)
-
-| Tool | Profile | Description |
-|------|---------|-------------|
-| `health_check` | minimal | Server health check with version info |
-| `verify_connection` | minimal | Verify API connection by fetching current user |
-
----
-
-## Profile Details
-
-### Minimal Profile (20 tools)
-
-Core task and habit management for basic productivity:
-
-- **Tasks**: list, list_completed, get, create, update, delete, complete
-- **Habits**: list, get, create, update, delete, mark_done, skip
-- **Events**: list, list_personal, get
-- **Analytics**: get_user_analytics
-- **System**: health_check, verify_connection
-
-### Standard Profile (32 tools)
-
-Adds workflow and focus management:
-
-- Everything in minimal, plus:
-- **Task workflow**: add_time, start, stop, prioritize, restart
-- **Habit workflow**: enable, disable
-- **Focus**: settings, lock, unlock, reschedule
-- **Analytics**: focus_insights
-
-### Full Profile (40 tools)
-
-All available tools:
-
-- Everything in standard, plus:
-- **Event management**: set_rsvp, move
-- **Habit advanced**: lock/unlock instances, start/stop sessions, convert_event_to_habit
+All NL times resolve to the nearest future occurrence in the user's
+timezone. Date-only inputs resolve to 9:00 AM local unless the phrase
+contains an explicit time.

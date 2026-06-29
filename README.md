@@ -18,7 +18,10 @@ Control your [Reclaim.ai](https://reclaim.ai) calendar, tasks, and habits from A
 "Start a focus block for the next 90 minutes"
 ```
 
-**40 tools** across tasks, calendar, habits, focus time, and analytics. See [docs/TOOLS.md](docs/TOOLS.md) for complete reference.
+**40 tools** across tasks, calendar, habits, focus time, and analytics. Every
+date/time parameter accepts natural language (`tomorrow at 3pm`, `next Tuesday`,
+`this week`). Call `get_context` first to anchor the current date, timezone,
+and task state. See [docs/TOOLS.md](docs/TOOLS.md) for the full reference.
 
 ## Quick Start
 
@@ -58,30 +61,13 @@ pip install reclaim-mcp-server
 
 **Registries:** [PyPI](https://pypi.org/project/reclaim-mcp-server/) · [Smithery](https://smithery.ai/server/universalamateur/reclaim-mcp-server) · [Glama](https://glama.ai/mcp/servers/@universalamateur/reclaim-mcp-server) · [GitHub](https://github.com/universalamateur/reclaim-mcp-server) · [GitLab](https://gitlab.com/universalamateur1/reclaim-mcp-server)
 
-## Tool Profiles
+## Environment Variables
 
-Limit exposed tools via `RECLAIM_TOOL_PROFILE`:
-
-| Profile | Tools | Use Case |
-|---------|-------|----------|
-| `minimal` | 20 | Basic task/habit management |
-| `standard` | 32 | Daily productivity |
-| `full` | 40 | All features (default) |
-
-```json
-{
-  "mcpServers": {
-    "reclaim": {
-      "command": "uvx",
-      "args": ["reclaim-mcp-server"],
-      "env": {
-        "RECLAIM_API_KEY": "your_key_here",
-        "RECLAIM_TOOL_PROFILE": "standard"
-      }
-    }
-  }
-}
-```
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `RECLAIM_API_KEY` | yes | Your Reclaim.ai developer token |
+| `RECLAIM_BASE_URL` | no | API base URL (defaults to `https://api.app.reclaim.ai`) |
+| `RECLAIM_TIMEZONE` | no | IANA zone (e.g., `America/Los_Angeles`) to override what Reclaim reports |
 
 ## Other Configurations
 

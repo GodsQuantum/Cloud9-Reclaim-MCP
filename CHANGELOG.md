@@ -5,6 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-04-17
+
+Tool surface redesigned for direct Claude use. Breaking changes throughout.
+
+### Added
+
+- `get_context` — single anchor call returning current time, timezone,
+  working hours today, active timer, and task counts. Claude should call
+  this before any time-dependent tool.
+- Natural-language time parsing (`tomorrow 3pm`, `in 2 hours`,
+  `next Tuesday`, `2026-04-20..2026-04-25`) on every date/time parameter.
+  Resolved values are echoed in each mutation response so users can confirm.
+- `RECLAIM_TIMEZONE` env var to override the timezone Reclaim reports.
+- Response envelopes for mutations: `{data, summary, resolved?, warnings?}`.
+  Reads still return raw lists/objects.
+- Thin projectors for `list_tasks`, `list_events`, `list_habits` with
+  `detail='thin'` (default) or `'full'` to cut token overhead.
+- `set_habit_enabled(habit_id, enabled)` — absorbs `enable_habit` + `disable_habit`.
+- `set_habit_instance_locked(event_id, locked)` — absorbs lock/unlock pair.
+- `set_focus_block_locked(calendar_id, event_id, locked)` — absorbs focus lock/unlock.
+- `restore_task(task_id)` — absorbs `restart_task` + `unarchive_task`, picks
+  the right action from current status.
+- `snooze_task(task_id, until)` now accepts NL, date, or ISO; `until=None`
+  clears an existing snooze (absorbs `clear_task_snooze`).
+- `list_events(when, scope, ...)` — `scope: 'external' | 'personal' | 'all'`
+  absorbs `list_personal_events`.
+- `list_tasks(filter, ...)` with semantic filters: `active`, `unscheduled`,
+  `in_progress`, `due_today`, `overdue`, `completed`, `all`.
+
+### Changed
+
+- Every time/date parameter renamed for clarity: `due_at` (datetime),
+  `due_date` → `due_at`, `start_time`/`end_time` → `start_at`/`end_at`,
+  `date_time` → `at`. Format is encoded in the name.
+- `lineage_id` → `habit_id` everywhere user-facing.
+- `add_time_to_task` → `log_work`.
+- `extend_task_duration` → `extend_task`.
+- `mark_task_complete` → `complete_task`.
+- `mark_habit_done` → `complete_habit_instance`.
+- `skip_habit` → `skip_habit_instance`.
+- `move_event` → `reschedule_event`.
+- `set_event_rsvp` → `rsvp_event`; `rsvp_status` values are now lowercase
+  friendly (`accepted`, `declined`, `tentative`, `needs_action`);
+  `send_updates` → `notify_attendees`.
+- `find_available_times` takes `when` (NL range) instead of `start_date` +
+  `end_date`.
+- Analytics tools take `when` instead of `start`/`end`.
+- Server now ships `instructions` that tell Claude to call `get_context`
+  first for time-dependent work.
+
+### Removed
+
+- Tool profiles (`RECLAIM_TOOL_PROFILE` env var, `minimal`/`standard`/`full`).
+  All 40 tools are always exposed. Consolidation did the heavy lifting.
+- `get_current_moment` / `get_next_moment` — folded into `get_context`.
+- `list_completed_tasks` — use `list_tasks(filter='completed')`.
+- `prioritize_task` — use `update_task(priority='P1')`.
+- `list_personal_events` — use `list_events(scope='personal')`.
+- `enable_habit` / `disable_habit` — use `set_habit_enabled`.
+- `lock_habit_instance` / `unlock_habit_instance` — use `set_habit_instance_locked`.
+- `lock_focus_block` / `unlock_focus_block` — use `set_focus_block_locked`.
+- `restart_task` / `unarchive_task` — use `restore_task`.
+- `clear_task_snooze` — call `snooze_task(task_id, until=None)`.
+
+### Dependencies
+
+- Added `dateparser>=1.2.0` for natural-language time parsing.
+
+**Total tools: 40** (was 49 across minimal/standard/full profiles).
+
 ## [0.11.0] - 2026-02-22
 
 ### Added

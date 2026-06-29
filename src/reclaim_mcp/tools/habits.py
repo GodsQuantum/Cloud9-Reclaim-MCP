@@ -1,4 +1,6 @@
-"""Smart Habit tools for Reclaim.ai."""
+"""Smart habit tools."""
+
+from __future__ import annotations
 
 from typing import Any, Optional
 
@@ -10,58 +12,84 @@ from reclaim_mcp.client import ReclaimClient
 from reclaim_mcp.config import get_settings
 from reclaim_mcp.exceptions import NotFoundError, RateLimitError, ReclaimError
 from reclaim_mcp.models import CalendarEventId, EventInstanceId, HabitCreate, HabitId, HabitUpdate
+from reclaim_mcp.responses import make_response, thin_habit
 from reclaim_mcp.utils import format_validation_errors
 
 
 def _get_client() -> ReclaimClient:
-    """Get a configured Reclaim client."""
-    settings = get_settings()
-    return ReclaimClient(settings)
+    return ReclaimClient(get_settings())
+
+
+def _build_habit_payload(v: HabitCreate) -> dict[str, Any]:
+    recurrence: dict[str, Any] = {"frequency": v.frequency.value}
+    if v.ideal_days:
+        recurrence["idealDays"] = [d.value for d in v.ideal_days]
+
+    time_policy_str = (
+        v.time_policy_type.value
+        if v.time_policy_type is not None
+        else ("PERSONAL" if v.event_type.value == "PERSONAL" else "WORK")
+    )
+
+    ideal_time = v.ideal_time if len(v.ideal_time) != 5 else f"{v.ideal_time}:00"
+
+    payload: dict[str, Any] = {
+        "title": v.title,
+        "idealTime": ideal_time,
+        "durationMinMins": v.duration_min_mins,
+        "durationMaxMins": v.duration_max_mins or v.duration_min_mins,
+        "enabled": v.enabled,
+        "recurrence": recurrence,
+        "organizer": {"timePolicyType": time_policy_str},
+        "eventType": v.event_type.value,
+        "defenseAggression": v.defense_aggression.value,
+    }
+    if v.description:
+        payload["description"] = v.description
+    return payload
 
 
 @ttl_cache(ttl=120)
-async def list_habits() -> list[dict]:
-    """List all smart habits from Reclaim.ai.
+async def list_habits(detail: str = "thin") -> list[dict[str, Any]]:
+    """List all smart habits.
 
-    Returns:
-        List of habit objects with lineageId, title, enabled, recurrence, etc.
+    Args:
+        detail: 'thin' (default) or 'full'.
     """
     try:
         client = _get_client()
-        habits = await client.get("/api/smart-habits")
-        return habits
+        raw = await client.get("/api/smart-habits")
     except RateLimitError as e:
         raise ToolError(str(e))
     except ReclaimError as e:
         raise ToolError(f"Error listing habits: {e}")
 
+    if detail == "thin" and isinstance(raw, list):
+        return [thin_habit(h) for h in raw]
+    return raw
+
 
 @ttl_cache(ttl=60)
-async def get_habit(lineage_id: int) -> dict:
-    """Get a single smart habit by lineage ID.
-
-    Args:
-        lineage_id: The habit lineage ID to retrieve
-
-    Returns:
-        SmartHabitLineageView object with full details.
-    """
-    # Validate input using Pydantic model
+async def get_habit(habit_id: int, detail: str = "full") -> dict[str, Any]:
+    """Get one habit by its `habit_id` (what the API calls lineageId)."""
     try:
-        validated = HabitId(lineage_id=lineage_id)
+        validated = HabitId(lineage_id=habit_id)
     except ValidationError as e:
         raise ToolError(format_validation_errors(e))
 
     try:
         client = _get_client()
         habit = await client.get(f"/api/smart-habits/{validated.lineage_id}")
-        return habit
     except NotFoundError:
-        raise ToolError(f"Habit {validated.lineage_id} not found")
+        raise ToolError(f"Habit {habit_id} not found")
     except RateLimitError as e:
         raise ToolError(str(e))
     except ReclaimError as e:
-        raise ToolError(f"Error getting habit {validated.lineage_id}: {e}")
+        raise ToolError(f"Error getting habit {habit_id}: {e}")
+
+    if detail == "thin":
+        return thin_habit(habit)
+    return habit
 
 
 async def create_habit(
@@ -76,26 +104,8 @@ async def create_habit(
     description: Optional[str] = None,
     enabled: bool = True,
     time_policy_type: Optional[str] = None,
-) -> dict:
-    """Create a new smart habit for auto-scheduling.
-
-    Args:
-        title: Habit name/title
-        ideal_time: Preferred time in "HH:MM" format (e.g., "09:00")
-        duration_min_mins: Minimum duration in minutes
-        frequency: Recurrence (DAILY, WEEKLY, MONTHLY, YEARLY) - default WEEKLY
-        ideal_days: Days for WEEKLY frequency (MONDAY, TUESDAY, etc.)
-        event_type: Type (FOCUS, SOLO_WORK, PERSONAL, etc.) - default SOLO_WORK
-        defense_aggression: Protection level (DEFAULT, NONE, LOW, MEDIUM, HIGH, MAX)
-        duration_max_mins: Maximum duration in minutes (defaults to min duration)
-        description: Optional habit description
-        enabled: Whether habit is active (default True)
-        time_policy_type: Time policy (WORK, PERSONAL, MEETING). Auto-inferred if not provided.
-
-    Returns:
-        Created habit object.
-    """
-    # Validate input using Pydantic model
+) -> dict[str, Any]:
+    """Create a recurring smart habit that Reclaim auto-schedules."""
     try:
         validated = HabitCreate(
             title=title,
@@ -115,54 +125,19 @@ async def create_habit(
 
     try:
         client = _get_client()
-
-        # Build recurrence object
-        recurrence: dict[str, Any] = {"frequency": validated.frequency.value}
-        if validated.ideal_days:
-            recurrence["idealDays"] = [d.value for d in validated.ideal_days]
-
-        # Determine time policy type based on event type if not explicitly provided
-        time_policy = validated.time_policy_type
-        if time_policy is None:
-            if validated.event_type.value == "PERSONAL":
-                time_policy_str = "PERSONAL"
-            else:
-                time_policy_str = "WORK"
-        else:
-            time_policy_str = time_policy.value
-
-        # Normalize ideal time to HH:MM:SS format
-        ideal_time_normalized = validated.ideal_time
-        if len(ideal_time_normalized) == 5:  # HH:MM format
-            ideal_time_normalized = f"{ideal_time_normalized}:00"
-
-        # Build request payload
-        payload: dict[str, Any] = {
-            "title": validated.title,
-            "idealTime": ideal_time_normalized,
-            "durationMinMins": validated.duration_min_mins,
-            "durationMaxMins": validated.duration_max_mins or validated.duration_min_mins,
-            "enabled": validated.enabled,
-            "recurrence": recurrence,
-            "organizer": {"timePolicyType": time_policy_str},
-            "eventType": validated.event_type.value,
-            "defenseAggression": validated.defense_aggression.value,
-        }
-        if validated.description:
-            payload["description"] = validated.description
-
-        habit = await client.post("/api/smart-habits", data=payload)
+        habit = await client.post("/api/smart-habits", data=_build_habit_payload(validated))
         invalidate_cache("list_habits")
         invalidate_cache("get_habit")
-        return habit
     except RateLimitError as e:
         raise ToolError(str(e))
     except ReclaimError as e:
         raise ToolError(f"Error creating habit '{title}': {e}")
 
+    return make_response(habit, summary=f"Created habit '{validated.title}'.")
+
 
 async def update_habit(
-    lineage_id: int,
+    habit_id: int,
     title: Optional[str] = None,
     ideal_time: Optional[str] = None,
     duration_min_mins: Optional[int] = None,
@@ -173,34 +148,15 @@ async def update_habit(
     event_type: Optional[str] = None,
     defense_aggression: Optional[str] = None,
     description: Optional[str] = None,
-) -> dict:
-    """Update an existing smart habit.
-
-    Args:
-        lineage_id: The habit lineage ID to update
-        title: New title (optional)
-        ideal_time: New preferred time in "HH:MM" format (optional)
-        duration_min_mins: New minimum duration in minutes (optional)
-        duration_max_mins: New maximum duration in minutes (optional)
-        enabled: Enable/disable the habit (optional)
-        frequency: New frequency (DAILY, WEEKLY, MONTHLY, YEARLY) (optional)
-        ideal_days: New ideal days list (optional)
-        event_type: New event type (optional)
-        defense_aggression: New defense aggression (optional)
-        description: New description (optional)
-
-    Returns:
-        Updated habit object.
-    """
-    # Validate lineage_id
+) -> dict[str, Any]:
+    """Update an existing habit. Omit fields to leave them unchanged."""
     try:
-        validated_id = HabitId(lineage_id=lineage_id)
+        validated_id = HabitId(lineage_id=habit_id)
     except ValidationError as e:
         raise ToolError(format_validation_errors(e))
 
-    # Validate update fields using Pydantic model
     try:
-        validated = HabitUpdate(
+        v = HabitUpdate(
             title=title,
             ideal_time=ideal_time,
             duration_min_mins=duration_min_mins,
@@ -215,64 +171,51 @@ async def update_habit(
     except ValidationError as e:
         raise ToolError(format_validation_errors(e))
 
+    payload: dict[str, Any] = {}
+    if v.title is not None:
+        payload["title"] = v.title
+    if v.ideal_time is not None:
+        ideal = v.ideal_time if len(v.ideal_time) != 5 else f"{v.ideal_time}:00"
+        payload["idealTime"] = ideal
+    if v.duration_min_mins is not None:
+        payload["durationMinMins"] = v.duration_min_mins
+    if v.duration_max_mins is not None:
+        payload["durationMaxMins"] = v.duration_max_mins
+    if v.enabled is not None:
+        payload["enabled"] = v.enabled
+    if v.description is not None:
+        payload["description"] = v.description
+    if v.event_type is not None:
+        payload["eventType"] = v.event_type.value
+    if v.defense_aggression is not None:
+        payload["defenseAggression"] = v.defense_aggression.value
+    if v.frequency is not None or v.ideal_days is not None:
+        recurrence: dict[str, Any] = {}
+        if v.frequency is not None:
+            recurrence["frequency"] = v.frequency.value
+        if v.ideal_days is not None:
+            recurrence["idealDays"] = [d.value for d in v.ideal_days]
+        payload["recurrence"] = recurrence
+
     try:
         client = _get_client()
-
-        payload: dict[str, Any] = {}
-        if validated.title is not None:
-            payload["title"] = validated.title
-        if validated.ideal_time is not None:
-            # Normalize ideal time to HH:MM:SS format
-            ideal_time_normalized = validated.ideal_time
-            if len(ideal_time_normalized) == 5:  # HH:MM format
-                ideal_time_normalized = f"{ideal_time_normalized}:00"
-            payload["idealTime"] = ideal_time_normalized
-        if validated.duration_min_mins is not None:
-            payload["durationMinMins"] = validated.duration_min_mins
-        if validated.duration_max_mins is not None:
-            payload["durationMaxMins"] = validated.duration_max_mins
-        if validated.enabled is not None:
-            payload["enabled"] = validated.enabled
-        if validated.description is not None:
-            payload["description"] = validated.description
-        if validated.event_type is not None:
-            payload["eventType"] = validated.event_type.value
-        if validated.defense_aggression is not None:
-            payload["defenseAggression"] = validated.defense_aggression.value
-
-        # Build recurrence object if any recurrence fields provided
-        if validated.frequency is not None or validated.ideal_days is not None:
-            recurrence: dict[str, Any] = {}
-            if validated.frequency is not None:
-                recurrence["frequency"] = validated.frequency.value
-            if validated.ideal_days is not None:
-                recurrence["idealDays"] = [d.value for d in validated.ideal_days]
-            payload["recurrence"] = recurrence
-
         habit = await client.patch(f"/api/smart-habits/{validated_id.lineage_id}", data=payload)
         invalidate_cache("list_habits")
         invalidate_cache("get_habit")
-        return habit
     except NotFoundError:
-        raise ToolError(f"Habit {validated_id.lineage_id} not found")
+        raise ToolError(f"Habit {habit_id} not found")
     except RateLimitError as e:
         raise ToolError(str(e))
     except ReclaimError as e:
-        raise ToolError(f"Error updating habit {validated_id.lineage_id}: {e}")
+        raise ToolError(f"Error updating habit {habit_id}: {e}")
+
+    return make_response(habit, summary=f"Updated habit {habit_id}.")
 
 
-async def delete_habit(lineage_id: int) -> bool:
-    """Delete a smart habit.
-
-    Args:
-        lineage_id: The habit lineage ID to delete
-
-    Returns:
-        True if deleted successfully.
-    """
-    # Validate input using Pydantic model
+async def delete_habit(habit_id: int) -> dict[str, Any]:
+    """Delete a habit entirely. To pause without deleting, use `set_habit_enabled`."""
     try:
-        validated = HabitId(lineage_id=lineage_id)
+        validated = HabitId(lineage_id=habit_id)
     except ValidationError as e:
         raise ToolError(format_validation_errors(e))
 
@@ -281,27 +224,66 @@ async def delete_habit(lineage_id: int) -> bool:
         await client.delete(f"/api/smart-habits/{validated.lineage_id}")
         invalidate_cache("list_habits")
         invalidate_cache("get_habit")
-        return True
     except NotFoundError:
-        raise ToolError(f"Habit {validated.lineage_id} not found")
+        raise ToolError(f"Habit {habit_id} not found")
     except RateLimitError as e:
         raise ToolError(str(e))
     except ReclaimError as e:
-        raise ToolError(f"Error deleting habit {validated.lineage_id}: {e}")
+        raise ToolError(f"Error deleting habit {habit_id}: {e}")
+
+    return make_response({"deleted": True, "habit_id": habit_id}, summary=f"Deleted habit {habit_id}.")
 
 
-async def mark_habit_done(event_id: str) -> dict:
-    """Mark a habit instance as done.
+async def set_habit_enabled(habit_id: int, enabled: bool) -> dict[str, Any]:
+    """Enable or disable a habit.
 
-    Use this to mark today's scheduled habit event as completed.
-
-    Args:
-        event_id: The event ID of the specific habit instance (from list_personal_events)
-
-    Returns:
-        Action result with updated events and series info.
+    Disabled habits stay in the system but stop scheduling. Use this instead
+    of `delete_habit` when you want to pause a habit.
     """
-    # Validate input using Pydantic model
+    try:
+        validated = HabitId(lineage_id=habit_id)
+    except ValidationError as e:
+        raise ToolError(format_validation_errors(e))
+
+    try:
+        client = _get_client()
+        if enabled:
+            result = await client.post(f"/api/smart-habits/{validated.lineage_id}/enable", data={})
+        else:
+            await client.delete(f"/api/smart-habits/{validated.lineage_id}/disable")
+            result = {}
+        invalidate_cache("list_habits")
+        invalidate_cache("get_habit")
+    except NotFoundError:
+        raise ToolError(f"Habit {habit_id} not found")
+    except RateLimitError as e:
+        raise ToolError(str(e))
+    except ReclaimError as e:
+        verb = "enabling" if enabled else "disabling"
+        raise ToolError(f"Error {verb} habit {habit_id}: {e}")
+
+    verb = "Enabled" if enabled else "Disabled"
+    return make_response(result, summary=f"{verb} habit {habit_id}.")
+
+
+async def complete_habit_instance(event_id: str) -> dict[str, Any]:
+    """Mark today's habit instance as done. `event_id` comes from a personal-events listing."""
+    return await _habit_instance_action(event_id, "done", "Completed")
+
+
+async def skip_habit_instance(event_id: str) -> dict[str, Any]:
+    """Skip today's habit instance without marking it done."""
+    return await _habit_instance_action(event_id, "skip", "Skipped")
+
+
+async def set_habit_instance_locked(event_id: str, locked: bool) -> dict[str, Any]:
+    """Lock or unlock a single habit instance so Reclaim does (or doesn't) move it."""
+    action = "lock" if locked else "unlock"
+    verb = "Locked" if locked else "Unlocked"
+    return await _habit_instance_action(event_id, action, verb)
+
+
+async def _habit_instance_action(event_id: str, action: str, verb: str) -> dict[str, Any]:
     try:
         validated = EventInstanceId(event_id=event_id)
     except ValidationError as e:
@@ -309,233 +291,48 @@ async def mark_habit_done(event_id: str) -> dict:
 
     try:
         client = _get_client()
-        result = await client.post(f"/api/smart-habits/planner/{validated.event_id}/done", data={})
+        result = await client.post(f"/api/smart-habits/planner/{validated.event_id}/{action}", data={})
         invalidate_cache("list_habits")
         invalidate_cache("get_habit")
-        return result
     except NotFoundError:
-        raise ToolError(f"Habit event {validated.event_id} not found")
+        raise ToolError(f"Habit event {event_id} not found")
     except RateLimitError as e:
         raise ToolError(str(e))
     except ReclaimError as e:
-        raise ToolError(f"Error marking habit done: {e}")
+        raise ToolError(f"Error on habit instance {event_id}: {e}")
+
+    return make_response(result, summary=f"{verb} habit instance {event_id}.")
 
 
-async def skip_habit(event_id: str) -> dict:
-    """Skip a habit instance.
+async def start_habit(habit_id: int) -> dict[str, Any]:
+    """Start the timer on this habit right now."""
+    return await _habit_timer(habit_id, "start", "Started")
 
-    Use this to skip today's scheduled habit event without marking it done.
 
-    Args:
-        event_id: The event ID of the specific habit instance to skip
+async def stop_habit(habit_id: int) -> dict[str, Any]:
+    """Stop a running habit timer."""
+    return await _habit_timer(habit_id, "stop", "Stopped")
 
-    Returns:
-        Action result with updated events and series info.
-    """
-    # Validate input using Pydantic model
+
+async def _habit_timer(habit_id: int, action: str, verb: str) -> dict[str, Any]:
     try:
-        validated = EventInstanceId(event_id=event_id)
+        validated = HabitId(lineage_id=habit_id)
     except ValidationError as e:
         raise ToolError(format_validation_errors(e))
 
     try:
         client = _get_client()
-        result = await client.post(f"/api/smart-habits/planner/{validated.event_id}/skip", data={})
+        result = await client.post(f"/api/smart-habits/planner/{validated.lineage_id}/{action}", data={})
         invalidate_cache("list_habits")
         invalidate_cache("get_habit")
-        return result
     except NotFoundError:
-        raise ToolError(f"Habit event {validated.event_id} not found")
+        raise ToolError(f"Habit {habit_id} not found")
     except RateLimitError as e:
         raise ToolError(str(e))
     except ReclaimError as e:
-        raise ToolError(f"Error skipping habit: {e}")
+        raise ToolError(f"Error {action}ing habit {habit_id}: {e}")
 
-
-async def lock_habit_instance(event_id: str) -> dict:
-    """Lock a habit instance to prevent it from being rescheduled.
-
-    Args:
-        event_id: The event ID of the specific habit instance to lock
-
-    Returns:
-        Action result with updated events and series info.
-    """
-    # Validate input using Pydantic model
-    try:
-        validated = EventInstanceId(event_id=event_id)
-    except ValidationError as e:
-        raise ToolError(format_validation_errors(e))
-
-    try:
-        client = _get_client()
-        result = await client.post(f"/api/smart-habits/planner/{validated.event_id}/lock", data={})
-        invalidate_cache("list_habits")
-        invalidate_cache("get_habit")
-        return result
-    except NotFoundError:
-        raise ToolError(f"Habit event {validated.event_id} not found")
-    except RateLimitError as e:
-        raise ToolError(str(e))
-    except ReclaimError as e:
-        raise ToolError(f"Error locking habit instance: {e}")
-
-
-async def unlock_habit_instance(event_id: str) -> dict:
-    """Unlock a habit instance to allow it to be rescheduled.
-
-    Args:
-        event_id: The event ID of the specific habit instance to unlock
-
-    Returns:
-        Action result with updated events and series info.
-    """
-    # Validate input using Pydantic model
-    try:
-        validated = EventInstanceId(event_id=event_id)
-    except ValidationError as e:
-        raise ToolError(format_validation_errors(e))
-
-    try:
-        client = _get_client()
-        # fmt: off
-        result = await client.post(
-            f"/api/smart-habits/planner/{validated.event_id}/unlock", data={}
-        )
-        # fmt: on
-        invalidate_cache("list_habits")
-        invalidate_cache("get_habit")
-        return result
-    except NotFoundError:
-        raise ToolError(f"Habit event {validated.event_id} not found")
-    except RateLimitError as e:
-        raise ToolError(str(e))
-    except ReclaimError as e:
-        raise ToolError(f"Error unlocking habit instance: {e}")
-
-
-async def start_habit(lineage_id: int) -> dict:
-    """Start a habit session now.
-
-    Args:
-        lineage_id: The habit lineage ID to start
-
-    Returns:
-        Action result with updated events and series info.
-    """
-    # Validate input using Pydantic model
-    try:
-        validated = HabitId(lineage_id=lineage_id)
-    except ValidationError as e:
-        raise ToolError(format_validation_errors(e))
-
-    try:
-        client = _get_client()
-        # fmt: off
-        result = await client.post(
-            f"/api/smart-habits/planner/{validated.lineage_id}/start", data={}
-        )
-        # fmt: on
-        invalidate_cache("list_habits")
-        invalidate_cache("get_habit")
-        return result
-    except NotFoundError:
-        raise ToolError(f"Habit {validated.lineage_id} not found")
-    except RateLimitError as e:
-        raise ToolError(str(e))
-    except ReclaimError as e:
-        raise ToolError(f"Error starting habit {validated.lineage_id}: {e}")
-
-
-async def stop_habit(lineage_id: int) -> dict:
-    """Stop a currently running habit session.
-
-    Args:
-        lineage_id: The habit lineage ID to stop
-
-    Returns:
-        Action result with updated events and series info.
-    """
-    # Validate input using Pydantic model
-    try:
-        validated = HabitId(lineage_id=lineage_id)
-    except ValidationError as e:
-        raise ToolError(format_validation_errors(e))
-
-    try:
-        client = _get_client()
-        # fmt: off
-        result = await client.post(
-            f"/api/smart-habits/planner/{validated.lineage_id}/stop", data={}
-        )
-        # fmt: on
-        invalidate_cache("list_habits")
-        invalidate_cache("get_habit")
-        return result
-    except NotFoundError:
-        raise ToolError(f"Habit {validated.lineage_id} not found")
-    except RateLimitError as e:
-        raise ToolError(str(e))
-    except ReclaimError as e:
-        raise ToolError(f"Error stopping habit {validated.lineage_id}: {e}")
-
-
-async def enable_habit(lineage_id: int) -> dict:
-    """Enable a disabled habit to resume scheduling.
-
-    Args:
-        lineage_id: The habit lineage ID to enable
-
-    Returns:
-        Empty dict on success.
-    """
-    # Validate input using Pydantic model
-    try:
-        validated = HabitId(lineage_id=lineage_id)
-    except ValidationError as e:
-        raise ToolError(format_validation_errors(e))
-
-    try:
-        client = _get_client()
-        result = await client.post(f"/api/smart-habits/{validated.lineage_id}/enable", data={})
-        invalidate_cache("list_habits")
-        invalidate_cache("get_habit")
-        return result
-    except NotFoundError:
-        raise ToolError(f"Habit {validated.lineage_id} not found")
-    except RateLimitError as e:
-        raise ToolError(str(e))
-    except ReclaimError as e:
-        raise ToolError(f"Error enabling habit {validated.lineage_id}: {e}")
-
-
-async def disable_habit(lineage_id: int) -> bool:
-    """Disable a habit to pause scheduling without deleting it.
-
-    Args:
-        lineage_id: The habit lineage ID to disable
-
-    Returns:
-        True if disabled successfully.
-    """
-    # Validate input using Pydantic model
-    try:
-        validated = HabitId(lineage_id=lineage_id)
-    except ValidationError as e:
-        raise ToolError(format_validation_errors(e))
-
-    try:
-        client = _get_client()
-        await client.delete(f"/api/smart-habits/{validated.lineage_id}/disable")
-        invalidate_cache("list_habits")
-        invalidate_cache("get_habit")
-        return True
-    except NotFoundError:
-        raise ToolError(f"Habit {validated.lineage_id} not found")
-    except RateLimitError as e:
-        raise ToolError(str(e))
-    except ReclaimError as e:
-        raise ToolError(f"Error disabling habit {validated.lineage_id}: {e}")
+    return make_response(result, summary=f"{verb} habit {habit_id}.")
 
 
 async def convert_event_to_habit(
@@ -552,39 +349,18 @@ async def convert_event_to_habit(
     description: Optional[str] = None,
     enabled: bool = True,
     time_policy_type: Optional[str] = None,
-) -> dict:
-    """Convert a calendar event into a recurring smart habit.
+) -> dict[str, Any]:
+    """Convert a calendar event into a recurring habit.
 
-    Note: Not all events can be converted. The API rejects recurring instances,
-    all-day events, and multi-day events. Use with short, timed, standalone events.
-
-    Args:
-        calendar_id: The calendar ID containing the event
-        event_id: The event ID to convert
-        title: Habit name/title
-        ideal_time: Preferred time in "HH:MM" format (e.g., "09:00")
-        duration_min_mins: Minimum duration in minutes
-        frequency: Recurrence frequency (DAILY, WEEKLY, MONTHLY, YEARLY)
-        ideal_days: Days of week for WEEKLY frequency (MONDAY, TUESDAY, etc.)
-        event_type: Type of event (FOCUS, SOLO_WORK, PERSONAL, etc.)
-        defense_aggression: Protection level (DEFAULT, NONE, LOW, MEDIUM, HIGH, MAX)
-        duration_max_mins: Maximum duration in minutes (defaults to min duration)
-        description: Optional habit description
-        enabled: Whether habit is active (default True)
-        time_policy_type: Time policy (WORK, PERSONAL, MEETING). Auto-inferred if not provided.
-
-    Returns:
-        Created habit object.
+    Doesn't work for recurring instances, all-day events, or multi-day events.
     """
-    # Validate calendar/event IDs using Pydantic model
     try:
         validated_event = CalendarEventId(calendar_id=calendar_id, event_id=event_id)
     except ValidationError as e:
         raise ToolError(format_validation_errors(e))
 
-    # Validate habit fields using Pydantic model
     try:
-        validated = HabitCreate(
+        v = HabitCreate(
             title=title,
             ideal_time=ideal_time,
             duration_min_mins=duration_min_mins,
@@ -602,57 +378,17 @@ async def convert_event_to_habit(
 
     try:
         client = _get_client()
-
-        # Build recurrence object
-        recurrence: dict[str, Any] = {"frequency": validated.frequency.value}
-        if validated.ideal_days:
-            recurrence["idealDays"] = [d.value for d in validated.ideal_days]
-
-        # Determine time policy type based on event type if not explicitly provided
-        time_policy = validated.time_policy_type
-        if time_policy is None:
-            if validated.event_type.value == "PERSONAL":
-                time_policy_str = "PERSONAL"
-            else:
-                time_policy_str = "WORK"
-        else:
-            time_policy_str = time_policy.value
-
-        # Normalize ideal time to HH:MM:SS format
-        ideal_time_normalized = validated.ideal_time
-        if len(ideal_time_normalized) == 5:  # HH:MM format
-            ideal_time_normalized = f"{ideal_time_normalized}:00"
-
-        # Build request payload (same schema as create_habit)
-        payload: dict[str, Any] = {
-            "title": validated.title,
-            "idealTime": ideal_time_normalized,
-            "durationMinMins": validated.duration_min_mins,
-            "durationMaxMins": validated.duration_max_mins or validated.duration_min_mins,
-            "enabled": validated.enabled,
-            "recurrence": recurrence,
-            "organizer": {"timePolicyType": time_policy_str},
-            "eventType": validated.event_type.value,
-            "defenseAggression": validated.defense_aggression.value,
-        }
-        if validated.description:
-            payload["description"] = validated.description
-
         habit = await client.post(
             f"/api/smart-habits/convert/{validated_event.calendar_id}/{validated_event.event_id}",
-            data=payload,
+            data=_build_habit_payload(v),
         )
         invalidate_cache("list_habits")
         invalidate_cache("get_habit")
-        return habit
     except NotFoundError:
-        # fmt: off
-        raise ToolError(
-            f"Event {validated_event.event_id} not found in calendar "
-            f"{validated_event.calendar_id}"
-        )
-        # fmt: on
+        raise ToolError(f"Event {event_id} not found in calendar {calendar_id}")
     except RateLimitError as e:
         raise ToolError(str(e))
     except ReclaimError as e:
         raise ToolError(f"Error converting event to habit: {e}")
+
+    return make_response(habit, summary=f"Converted event {event_id} into habit '{title}'.")

@@ -4,7 +4,7 @@
 >
 > Core principles (KISS, quality, confidentiality) are maintained in the repository owner's global Claude configuration.
 
-**Current Version**: v0.11.0 (2026-02-22)
+**Current Version**: v1.0.0 (2026-04-17)
 
 ---
 
@@ -26,14 +26,20 @@ Provides MCP tools for AI assistants to interact with Reclaim.ai's API:
 
 | Category | Tool Count | Description |
 |----------|------------|-------------|
-| Tasks | 17 | Task CRUD, time tracking, snooze, plan work |
-| Habits | 14 | Smart habit management and scheduling |
-| Events | 5 | Calendar event operations |
-| Context | 2 | Current moment, next moment |
-| Scheduling | 2 | Working hours, available times |
-| Focus | 5 | Focus time settings and blocks |
-| Analytics | 2 | User productivity analytics |
-| Utility | 2 | Health check, connection verify |
+| System | 3 | `get_context` (time/tz/state anchor), health, verify |
+| Tasks | 13 | CRUD, time tracking, snooze (NL), plan work, restore |
+| Habits | 12 | CRUD, instance actions, timers, event conversion |
+| Events | 4 | List, get, RSVP, reschedule |
+| Focus | 4 | Settings, lock, reschedule |
+| Scheduling | 2 | Working hours, find mutual availability |
+| Analytics | 2 | User productivity, focus insights |
+
+Every date/time parameter accepts natural language ("tomorrow at 3pm",
+"next Tuesday", "this week") via `reclaim_mcp.time.parse_when` /
+`parse_range`. The user's timezone is resolved once by
+`reclaim_mcp.user_tz.get_user_tz` (env var > `/api/timeschemes` > system).
+Mutation tools return `{data, summary, resolved?, warnings?}` via
+`reclaim_mcp.responses.make_response`.
 
 ### Technology Stack
 

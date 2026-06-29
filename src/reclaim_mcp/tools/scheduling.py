@@ -1,6 +1,8 @@
-"""Scheduling tools — working hours and meeting time suggestions."""
+"""Scheduling tools — working hours and mutual availability."""
 
-from typing import Optional
+from __future__ import annotations
+
+from typing import Any, Optional
 
 from fastmcp.exceptions import ToolError
 from pydantic import ValidationError
@@ -10,26 +12,24 @@ from reclaim_mcp.client import ReclaimClient
 from reclaim_mcp.config import get_settings
 from reclaim_mcp.exceptions import RateLimitError, ReclaimError
 from reclaim_mcp.models import SuggestedTimesRequest
+from reclaim_mcp.time import TimeParseError, parse_range
+from reclaim_mcp.user_tz import get_user_tz
 from reclaim_mcp.utils import format_validation_errors
 
 
 def _get_client() -> ReclaimClient:
-    """Get a configured Reclaim client."""
-    settings = get_settings()
-    return ReclaimClient(settings)
+    return ReclaimClient(get_settings())
 
 
 @ttl_cache(ttl=300)
-async def get_working_hours() -> list:
-    """Get all time schemes (working hours / availability windows).
+async def get_working_hours() -> list[dict[str, Any]]:
+    """Return the user's time-scheme definitions (one per schedule policy).
 
-    Returns:
-        List of time scheme objects with schedule policies and day-by-day hours.
+    For today's working hours specifically, prefer `get_context`.
     """
     try:
         client = _get_client()
-        result = await client.get("/api/timeschemes")
-        return result
+        return await client.get("/api/timeschemes")
     except RateLimitError as e:
         raise ToolError(str(e))
     except ReclaimError as e:
@@ -39,22 +39,22 @@ async def get_working_hours() -> list:
 async def find_available_times(
     attendees: list[str],
     duration_minutes: int,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
+    when: Optional[str] = None,
     limit: Optional[int] = None,
-) -> dict:
-    """Find available meeting times for a set of attendees.
+) -> dict[str, Any]:
+    """Find mutual availability across attendees.
 
-    Args:
-        attendees: List of email addresses to find mutual availability for.
-        duration_minutes: Required meeting duration in minutes.
-        start_date: Start of search window in YYYY-MM-DD format (optional).
-        end_date: End of search window in YYYY-MM-DD format (optional).
-        limit: Maximum number of suggested times to return (optional).
-
-    Returns:
-        Suggested times with availability info for each slot.
+    `attendees` is a list of email addresses. `when` accepts NL ranges or
+    'YYYY-MM-DD..YYYY-MM-DD'; omit to let Reclaim pick a default window.
     """
+    start_date = end_date = None
+    if when:
+        tz = await get_user_tz()
+        try:
+            start_date, end_date = parse_range(when, tz=tz)
+        except TimeParseError as e:
+            raise ToolError(str(e))
+
     try:
         validated = SuggestedTimesRequest(
             attendees=attendees,
@@ -66,7 +66,7 @@ async def find_available_times(
     except ValidationError as e:
         raise ToolError(format_validation_errors(e))
 
-    payload: dict = {
+    payload: dict[str, Any] = {
         "attendees": validated.attendees,
         "durationMinutes": validated.duration_minutes,
     }
