@@ -8,7 +8,7 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Builder
 # -----------------------------------------------------------------------------
-FROM python:3.12-slim as builder
+FROM python:3.12-slim AS builder
 
 WORKDIR /build
 
@@ -38,7 +38,7 @@ RUN poetry build -f wheel
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime
 # -----------------------------------------------------------------------------
-FROM python:3.12-slim as runtime
+FROM python:3.12-slim AS runtime
 
 # Security: Run as non-root user
 RUN useradd --create-home --shell /bin/bash mcp
@@ -58,10 +58,10 @@ USER mcp
 
 # MCP Registry metadata labels
 # Required for ownership verification when publishing to registry.modelcontextprotocol.io
-LABEL io.modelcontextprotocol.server.name="io.github.universalamateur/reclaim-mcp-server"
+LABEL io.modelcontextprotocol.server.name="io.github.godsquantum/cloud9-reclaim-mcp"
 LABEL io.modelcontextprotocol.server.description="MCP server for Reclaim.ai calendar and task management"
-LABEL org.opencontainers.image.source="https://github.com/universalamateur/reclaim-mcp-server"
-LABEL org.opencontainers.image.description="Reclaim.ai MCP Server - Calendar and task management for AI assistants"
+LABEL org.opencontainers.image.source="https://github.com/GodsQuantum/Cloud9-Reclaim-MCP"
+LABEL org.opencontainers.image.description="Cloud9 Reclaim MCP - 72-tool public community distribution"
 LABEL org.opencontainers.image.licenses="MIT"
 
 # Environment configuration

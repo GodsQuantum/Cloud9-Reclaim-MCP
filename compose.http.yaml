@@ -1,0 +1,27 @@
+name: cloud9-reclaim-mcp
+services:
+  reclaim-mcp:
+    image: ghcr.io/godsquantum/cloud9-reclaim-mcp:latest
+    pull_policy: always
+    container_name: reclaim-mcp
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      RECLAIM_TOOL_PROFILE: full
+    entrypoint:
+      - python
+      - -c
+      - "from reclaim_mcp.server import mcp; mcp.run(transport='streamable-http',host='0.0.0.0',port=8000,path='/mcp',show_banner=False)"
+    ports:
+      - "127.0.0.1:8000:8000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1',8000),3); s.close()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

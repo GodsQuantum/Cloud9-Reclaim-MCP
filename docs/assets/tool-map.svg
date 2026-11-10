@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="520" viewBox="0 0 1080 520" role="img" aria-labelledby="title desc"><title id="title">Cloud9 Reclaim MCP — 72 tool groups</title><desc id="desc">Six grouped categories of the 72 available MCP tools, from tasks and calendars to habits, meetings and policies.</desc>
+<rect width="1080" height="520" rx="24" fill="#101d37"/>
+<text x="54" y="70" fill="#f2f7ff" font-family="system-ui,sans-serif" font-weight="800" font-size="34">72 MCP TOOLS</text>
+<text x="54" y="102" fill="#b4c7e5" font-family="system-ui,sans-serif" font-size="17">One Reclaim.ai integration · full capability surface</text>
+<path d="M539 115 L539 465" stroke="#7285aa" stroke-opacity=".4" stroke-width="2" stroke-dasharray="6 10"/>
+
+<rect x="50" y="137" width="480" height="104" rx="16" fill="#1b2e50" stroke="#354b6c" stroke-width="1.5"/>
+<circle cx="77" cy="167" r="7" fill="#00cfa7"/>
+<text x="96" y="174" fill="#f2f7ff" font-family="system-ui,sans-serif" font-weight="700" font-size="21">Tasks &amp; priorities</text>
+<text x="73" y="214" fill="#c6d7ef" font-family="system-ui,sans-serif" font-size="14">create_task · plan_work · prioritize_task</text>
+<rect x="565" y="137" width="480" height="104" rx="16" fill="#1b2e50" stroke="#354b6c" stroke-width="1.5"/>
+<circle cx="592" cy="167" r="7" fill="#8b6cff"/>
+<text x="611" y="174" fill="#f2f7ff" font-family="system-ui,sans-serif" font-weight="700" font-size="21">Calendar &amp; events</text>
+<text x="588" y="214" fill="#c6d7ef" font-family="system-ui,sans-serif" font-size="14">list_events · move_event · set_event_rsvp</text>
+<rect x="50" y="259" width="480" height="104" rx="16" fill="#1b2e50" stroke="#354b6c" stroke-width="1.5"/>
+<circle cx="77" cy="289" r="7" fill="#00cfa7"/>
+<text x="96" y="296" fill="#f2f7ff" font-family="system-ui,sans-serif" font-weight="700" font-size="21">Habits &amp; focus</text>
+<text x="73" y="336" fill="#c6d7ef" font-family="system-ui,sans-serif" font-size="14">create_habit · lock_focus_block · mark_habit_done</text>
+<rect x="565" y="259" width="480" height="104" rx="16" fill="#1b2e50" stroke="#354b6c" stroke-width="1.5"/>
+<circle cx="592" cy="289" r="7" fill="#8b6cff"/>
+<text x="611" y="296" fill="#f2f7ff" font-family="system-ui,sans-serif" font-weight="700" font-size="21">People &amp; one-on-ones</text>
+<text x="588" y="336" fill="#c6d7ef" font-family="system-ui,sans-serif" font-size="14">sync_people · get_one_on_one · invite workflows</text>
+<rect x="50" y="381" width="480" height="104" rx="16" fill="#1b2e50" stroke="#354b6c" stroke-width="1.5"/>
+<circle cx="77" cy="411" r="7" fill="#00cfa7"/>
+<text x="96" y="418" fill="#f2f7ff" font-family="system-ui,sans-serif" font-weight="700" font-size="21">Availability &amp; policies</text>
+<text x="73" y="458" fill="#c6d7ef" font-family="system-ui,sans-serif" font-size="14">find_available_times · update_schedule_policy</text>
+<rect x="565" y="381" width="480" height="104" rx="16" fill="#1b2e50" stroke="#354b6c" stroke-width="1.5"/>
+<circle cx="592" cy="411" r="7" fill="#8b6cff"/>
+<text x="611" y="418" fill="#f2f7ff" font-family="system-ui,sans-serif" font-weight="700" font-size="21">Controls &amp; insights</text>
+<text x="588" y="458" fill="#c6d7ef" font-family="system-ui,sans-serif" font-size="14">get_user_analytics · health_check · verify_connection</text>
+<text x="540" y="505" text-anchor="middle" fill="#a4bbd5" font-family="system-ui,sans-serif" font-size="13">Contract: tests/contract-tools.json · names and input schemas verified in CI</text></svg>

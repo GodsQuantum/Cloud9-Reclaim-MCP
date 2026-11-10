@@ -1,171 +1,72 @@
-# Reclaim.ai MCP Server _(UNOFFICIAL)_
+<p align="center"><img src="docs/assets/logo.png" width="160" alt="Cloud9 Reclaim MCP logo"></p>
+<h1 align="center">Cloud9-Reclaim-MCP</h1>
+<p align="center"><strong>The full 72-tool Reclaim.ai MCP server, with public multi-platform Docker images.</strong><br>
+Calendar · tasks · habits · focus · 1:1 meetings · people · scheduling policies</p>
 
-<!-- mcp-name: io.github.universalamateur/reclaim-mcp-server -->
-
-[![PyPI](https://img.shields.io/pypi/v/reclaim-mcp-server)](https://pypi.org/project/reclaim-mcp-server/) [![Downloads](https://img.shields.io/pypi/dm/reclaim-mcp-server)](https://pypi.org/project/reclaim-mcp-server/) [![Python](https://img.shields.io/pypi/pyversions/reclaim-mcp-server)](https://pypi.org/project/reclaim-mcp-server/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-> **UNOFFICIAL** – Not affiliated with Reclaim.ai. Uses their public API , use at your own risk.
-
-Control your [Reclaim.ai](https://reclaim.ai) calendar, tasks, and habits from AI assistants via [MCP](https://modelcontextprotocol.io).
-
-## What You Can Do
-
-```text
-"Create a 2-hour task to review the Q1 budget, due Friday"
-"What's on my calendar tomorrow?"
-"Mark my morning workout habit as done"
-"Show me my productivity stats for last week"
-"Start a focus block for the next 90 minutes"
-```
-
-**40 tools** across tasks, calendar, habits, focus time, and analytics. See [docs/TOOLS.md](docs/TOOLS.md) for complete reference.
-
-## Quick Start
-
-### 1. Get your API key: <https://app.reclaim.ai/settings/developer>
-
-### 2. Install
-
-```bash
-pip install reclaim-mcp-server
-```
-
-### 3. Configure Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`)
-
-```json
-   {
-     "mcpServers": {
-       "reclaim": {
-         "command": "uvx",
-         "args": ["reclaim-mcp-server"],
-         "env": { "RECLAIM_API_KEY": "your_key_here" }
-       }
-     }
-   }
-```
-
-### 4. Restart Claude Desktop
-
-## Installation Options
-
-| Method | Command |
-|--------|---------|
-| **uvx** (recommended) | `uvx reclaim-mcp-server` |
-| **pip** | `pip install reclaim-mcp-server` |
-| **Smithery** | `npx -y @smithery/cli install universalamateur/reclaim-mcp-server --client claude` |
-| **Docker** | `docker pull universalamateur/reclaim-mcp-server` |
-| **Source** | `git clone https://gitlab.com/universalamateur1/reclaim-mcp-server.git && cd reclaim-mcp-server && poetry install` |
-
-**Registries:** [PyPI](https://pypi.org/project/reclaim-mcp-server/) · [Smithery](https://smithery.ai/server/universalamateur/reclaim-mcp-server) · [Glama](https://glama.ai/mcp/servers/@universalamateur/reclaim-mcp-server) · [GitHub](https://github.com/universalamateur/reclaim-mcp-server) · [GitLab](https://gitlab.com/universalamateur1/reclaim-mcp-server)
-
-## Tool Profiles
-
-Limit exposed tools via `RECLAIM_TOOL_PROFILE`:
-
-| Profile | Tools | Use Case |
-|---------|-------|----------|
-| `minimal` | 20 | Basic task/habit management |
-| `standard` | 32 | Daily productivity |
-| `full` | 40 | All features (default) |
-
-```json
-{
-  "mcpServers": {
-    "reclaim": {
-      "command": "uvx",
-      "args": ["reclaim-mcp-server"],
-      "env": {
-        "RECLAIM_API_KEY": "your_key_here",
-        "RECLAIM_TOOL_PROFILE": "standard"
-      }
-    }
-  }
-}
-```
-
-## Other Configurations
-
-<details>
-<summary>Docker</summary>
-
-```json
-{
-  "mcpServers": {
-    "reclaim": {
-      "command": "docker",
-      "args": ["run", "-i", "--rm", "-e", "RECLAIM_API_KEY", "universalamateur/reclaim-mcp-server"],
-      "env": { "RECLAIM_API_KEY": "your_key_here" }
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary>Poetry (from source)</summary>
-
-```json
-{
-  "mcpServers": {
-    "reclaim": {
-      "command": "/opt/homebrew/bin/poetry",
-      "args": ["--directory", "/path/to/reclaim-mcp-server", "run", "reclaim-mcp-server"],
-      "env": { "RECLAIM_API_KEY": "your_key_here" }
-    }
-  }
-}
-```
-
-**Note**: Use `--directory` flag instead of `cwd` – Claude Desktop doesn't respect `cwd`.
-
-</details>
-
-<details>
-<summary>Other MCP clients (Cursor, Continue, Zed, etc.)</summary>
-
-Works with any MCP-compatible client. Generic stdio config:
-
-```json
-{
-  "command": "uvx",
-  "args": ["reclaim-mcp-server"],
-  "env": { "RECLAIM_API_KEY": "your_key_here" }
-}
-```
-
-</details>
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| "Invalid API key" | Verify key at <https://app.reclaim.ai/settings/developer> |
-| Rate limited (429) | Server handles retries automatically; reduce request frequency |
-| Tools not showing | Restart Claude Desktop after config change |
-| Docker ARM64 warning | Use v0.8.1+ for native Apple Silicon support |
-
-## Development
-
-```bash
-poetry install
-poetry run pytest                    # Run tests
-poetry run black src tests           # Format
-poetry run mypy src                  # Type check
-poetry run fastmcp dev src/reclaim_mcp/server.py  # Dev mode
-```
-
-## Links
-
-- [Changelog](CHANGELOG.md)
-- [Tool Reference](docs/TOOLS.md)
-- [Contributing](CONTRIBUTING.md)
-- [Report Issue](https://gitlab.com/universalamateur1/reclaim-mcp-server/-/issues/new)
-
-## License
-
-[MIT](LICENSE) – Falko Sieverding ([@UniversalAmateur](https://gitlab.com/UniversalAmateur))
+<p align="center">
+  <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-3dd7cf"></a>
+  <img alt="MCP" src="https://img.shields.io/badge/protocol-MCP-9d8cf5">
+  <img alt="Tools" src="https://img.shields.io/badge/tools-72-54cd8a">
+  <img alt="Docker" src="https://img.shields.io/badge/image-GHCR-2496ed">
+  <a href="https://github.com/GodsQuantum/Cloud9-Reclaim-MCP/actions/workflows/publish.yml"><img alt="Build and publish" src="https://github.com/GodsQuantum/Cloud9-Reclaim-MCP/actions/workflows/publish.yml/badge.svg"></a>
+</p>
+<p align="center">English · 🇫🇷 <a href="README.fr.md">Français</a> · 🇨🇳 <a href="README.zh-CN.md">简体中文</a></p>
 
 ---
 
-<sub>Built with [FastMCP](https://gofastmcp.com) · Not affiliated with [Reclaim.ai](https://reclaim.ai)</sub>
+Cloud9-Reclaim-MCP packages the **72-tool** source from [thechrisfischer/reclaim-mcp-server](https://github.com/thechrisfischer/reclaim-mcp-server), a public MIT-licensed extension of [universalamateur/reclaim-mcp-server](https://github.com/universalamateur/reclaim-mcp-server). At the time of this project's creation, the vendor's Docker Hub `latest` image exposed **49 tools**, whereas this maintained source revision exposed **72** (all 72 names and input schemas are committed as a regression contract).
+
+**Not affiliated with Reclaim.ai.** This project preserves its original authors' attribution and upstream license. There are no user credentials, server addresses, calendars or private Cloud9 settings in this repository or image.
+
+## Why a community image?
+
+- **No local rebuild on each update** — install a tested, pre-built image from GHCR; the source and CI live here.
+- **72 tools, not just a tool-count claim** — `tests/contract-tools.json` records every tool's name and input schema; CI refuses publication on drift.
+- **Both MCP transports** — standard stdio clients or HTTP `/mcp` through the package's existing FastMCP server.
+- **Safe upgrade policy** — upstream changes are reviewed with a weekly GitHub Actions check; no blind merge that might drop tools.
+- **Portable** — no hardcoded addresses, accounts or user-specific integrations.
+
+<p align="center"><img src="docs/assets/tool-map.svg" width="900" alt="Map of 72 Reclaim MCP tools by function"></p>
+
+## Quick start
+
+### Stdio — local MCP clients
+
+```bash
+docker run --rm -i \
+  -e RECLAIM_API_KEY="YOUR_RECLAIM_API_KEY" \
+  -e RECLAIM_TOOL_PROFILE=full \
+  ghcr.io/godsquantum/cloud9-reclaim-mcp:latest
+```
+
+For production, pass the API key from your MCP client/secret manager rather than committing it to a shell script.
+
+### HTTP / streamable MCP
+
+```bash
+cp .env.example .env
+# Set RECLAIM_API_KEY in .env, and keep the file private.
+docker compose -f compose.http.yaml up -d
+```
+
+Connect an MCP client to `http://127.0.0.1:8000/mcp`. The example binds **localhost only**. Place an authenticated reverse proxy or MCP gateway in front of it before exposing it to another machine; the upstream server does not become a public auth gateway merely by serving HTTP.
+
+## Tools
+
+The complete machine-readable catalog is [tests/contract-tools.json](tests/contract-tools.json). The names include `create_task`, `list_tasks`, `plan_work`, `find_available_times`, `list_one_on_ones`, `sync_people` and `update_schedule_policy`. See also [upstream's API documentation](docs/API.md).
+
+The contract certifies exported names and input schemas; it does **not** claim all Reclaim.ai account permissions or APIs were exercised without valid credentials.
+
+## Updating and releasing
+
+A push to `main` triggers the source build, exact 72-tool contract gate and GHCR publication. Tagged `v*` commits publish a matching version in addition to `latest`. A weekly workflow compares the base branch with its parent and opens an issue when upstream changes; reviewing/rebasing remains deliberate. Both systems run on GitHub runners, **not on the user's Docker host**. Clients only pull the new image after publication.
+
+See [UPSTREAM.md](UPSTREAM.md) for source commits, maintenance steps and rollback. If a new upstream release preserves all 72 tool schemas and adds useful functionality, update the contract deliberately with an explicit review.
+
+## Security and credits
+
+- `RECLAIM_API_KEY` is a **runtime secret**. The public repository uses a placeholder only.
+- Treat the HTTP endpoint as privileged: it can create/change/delete tasks and calendar items.
+- MIT license and existing copyright/author credit remain in [LICENSE](LICENSE).
+- Sources: [thechrisfischer/reclaim-mcp-server](https://github.com/thechrisfischer/reclaim-mcp-server), [universalamateur/reclaim-mcp-server](https://github.com/universalamateur/reclaim-mcp-server).
+- Maintained packaging and compatibility tests by [GodsQuantum](https://github.com/GodsQuantum).

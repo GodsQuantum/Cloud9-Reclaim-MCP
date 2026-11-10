@@ -1,0 +1,78 @@
+name: Build, verify and publish GHCR
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+concurrency:
+  group: reclaim-release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build local amd64 candidate
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          push: false
+          tags: local/cloud9-reclaim-contract:latest
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Exact 72-tool API contract (network disabled)
+        run: |
+          docker run --rm --network none \
+            -e RECLAIM_TOOL_PROFILE=full \
+            -v "$PWD/tests/contract-tools.json:/contract-tools.json:ro" \
+            -v "$PWD/scripts/verify_contract.py:/verify_contract.py:ro" \
+            --entrypoint python local/cloud9-reclaim-contract:latest /verify_contract.py
+      - name: Synthetic MCP HTTP handshake and tools/list (no external network)
+        run: |
+          docker run --rm --network none \
+            -e RECLAIM_TOOL_PROFILE=full \
+            -v "$PWD/scripts/verify_http.py:/verify_http.py:ro" \
+            --entrypoint python local/cloud9-reclaim-contract:latest /verify_http.py
+      - name: Verify upstream MIT attribution and no secrets tracked
+        run: |
+          test -s LICENSE
+          test -s README.md
+          test -s README.fr.md
+          test -s README.zh-CN.md
+          test ! -f .env
+          test ! -f compose.yaml
+  publish:
+    needs: contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/godsquantum/cloud9-reclaim-mcp
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=ref,event=tag
+            type=sha,prefix=sha-
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

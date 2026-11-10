@@ -1,0 +1,32 @@
+name: Detect parent source updates (review required)
+on:
+  schedule:
+    - cron: "15 5 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  upstream-watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare upstream baseline
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          baseline="$(cat .github/upstream-parent.sha)"
+          latest="$(git ls-remote https://github.com/thechrisfischer/reclaim-mcp-server.git refs/heads/main | cut -f1)"
+          test -n "$latest"
+          if [ "$baseline" = "$latest" ]; then
+            echo "Parent upstream still at $latest"
+            exit 0
+          fi
+          if gh issue list --state open --limit 100 --json title --jq '.[].title' | grep -Fx 'Review upstream Reclaim MCP changes' >/dev/null; then
+            echo "Existing review issue found"
+            exit 0
+          fi
+          gh issue create --title 'Review upstream Reclaim MCP changes' --body "Parent upstream moved from \`$baseline\` to \`$latest\`. Review diff in a feature branch; verify all 72 tools and their schemas. Do NOT auto-merge. Update .github/upstream-parent.sha after approved integration."

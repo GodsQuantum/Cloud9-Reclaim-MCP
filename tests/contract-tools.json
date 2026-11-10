@@ -1,0 +1,1494 @@
+{
+  "add_time_to_task": {
+    "properties": {
+      "minutes": {
+        "type": "integer"
+      },
+      "notes": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id",
+      "minutes"
+    ],
+    "type": "object"
+  },
+  "bulk_reschedule_tasks": {
+    "properties": {
+      "after": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "task_ids": {
+        "items": {
+          "type": "integer"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "task_ids"
+    ],
+    "type": "object"
+  },
+  "categorize_event": {
+    "properties": {
+      "calendar_id": {
+        "type": "integer"
+      },
+      "category": {
+        "type": "string"
+      },
+      "event_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "calendar_id",
+      "event_id",
+      "category"
+    ],
+    "type": "object"
+  },
+  "clear_task_snooze": {
+    "properties": {
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id"
+    ],
+    "type": "object"
+  },
+  "convert_event_to_habit": {
+    "properties": {
+      "calendar_id": {
+        "type": "integer"
+      },
+      "defense_aggression": {
+        "default": "DEFAULT",
+        "type": "string"
+      },
+      "description": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "duration_max_mins": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "duration_min_mins": {
+        "type": "integer"
+      },
+      "enabled": {
+        "default": true,
+        "type": "boolean"
+      },
+      "event_id": {
+        "type": "string"
+      },
+      "event_type": {
+        "default": "SOLO_WORK",
+        "type": "string"
+      },
+      "frequency": {
+        "default": "WEEKLY",
+        "type": "string"
+      },
+      "ideal_days": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "ideal_time": {
+        "type": "string"
+      },
+      "time_policy_type": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "title": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "calendar_id",
+      "event_id",
+      "title",
+      "ideal_time",
+      "duration_min_mins"
+    ],
+    "type": "object"
+  },
+  "create_habit": {
+    "properties": {
+      "defense_aggression": {
+        "default": "DEFAULT",
+        "type": "string"
+      },
+      "description": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "duration_max_mins": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "duration_min_mins": {
+        "type": "integer"
+      },
+      "enabled": {
+        "default": true,
+        "type": "boolean"
+      },
+      "event_type": {
+        "default": "SOLO_WORK",
+        "type": "string"
+      },
+      "frequency": {
+        "default": "WEEKLY",
+        "type": "string"
+      },
+      "ideal_days": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "ideal_time": {
+        "type": "string"
+      },
+      "time_policy_type": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "title": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "title",
+      "ideal_time",
+      "duration_min_mins"
+    ],
+    "type": "object"
+  },
+  "create_one_on_one": {
+    "properties": {
+      "duration_minutes": {
+        "default": 30,
+        "type": "integer"
+      },
+      "ideal_time": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "invitee_email": {
+        "type": "string"
+      },
+      "notes": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "recurrence": {
+        "default": "WEEKLY",
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "title",
+      "invitee_email"
+    ],
+    "type": "object"
+  },
+  "create_task": {
+    "properties": {
+      "due_date": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "duration_minutes": {
+        "type": "integer"
+      },
+      "max_chunk_size_minutes": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "min_chunk_size_minutes": {
+        "default": 15,
+        "type": "integer"
+      },
+      "priority": {
+        "default": "P2",
+        "type": "string"
+      },
+      "snooze_until": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "title": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "title",
+      "duration_minutes"
+    ],
+    "type": "object"
+  },
+  "delete_habit": {
+    "properties": {
+      "lineage_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "lineage_id"
+    ],
+    "type": "object"
+  },
+  "delete_one_on_one": {
+    "properties": {
+      "one_on_one_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "one_on_one_id"
+    ],
+    "type": "object"
+  },
+  "delete_task": {
+    "properties": {
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id"
+    ],
+    "type": "object"
+  },
+  "disable_habit": {
+    "properties": {
+      "lineage_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "lineage_id"
+    ],
+    "type": "object"
+  },
+  "enable_habit": {
+    "properties": {
+      "lineage_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "lineage_id"
+    ],
+    "type": "object"
+  },
+  "extend_task_duration": {
+    "properties": {
+      "minutes": {
+        "type": "integer"
+      },
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id",
+      "minutes"
+    ],
+    "type": "object"
+  },
+  "find_available_times": {
+    "properties": {
+      "attendees": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "duration_minutes": {
+        "type": "integer"
+      },
+      "end_date": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "limit": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "start_date": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    },
+    "required": [
+      "attendees",
+      "duration_minutes"
+    ],
+    "type": "object"
+  },
+  "get_current_moment": {
+    "properties": {},
+    "type": "object"
+  },
+  "get_event": {
+    "properties": {
+      "calendar_id": {
+        "type": "integer"
+      },
+      "event_id": {
+        "type": "string"
+      },
+      "thin": {
+        "default": false,
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "calendar_id",
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "get_focus_insights": {
+    "properties": {
+      "end": {
+        "type": "string"
+      },
+      "start": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "start",
+      "end"
+    ],
+    "type": "object"
+  },
+  "get_focus_settings": {
+    "properties": {},
+    "type": "object"
+  },
+  "get_habit": {
+    "properties": {
+      "lineage_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "lineage_id"
+    ],
+    "type": "object"
+  },
+  "get_next_moment": {
+    "properties": {},
+    "type": "object"
+  },
+  "get_one_on_one": {
+    "properties": {
+      "one_on_one_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "one_on_one_id"
+    ],
+    "type": "object"
+  },
+  "get_one_on_one_suggestions": {
+    "properties": {},
+    "type": "object"
+  },
+  "get_recommended_policy": {
+    "properties": {},
+    "type": "object"
+  },
+  "get_schedule_policy": {
+    "properties": {
+      "policy_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "policy_id"
+    ],
+    "type": "object"
+  },
+  "get_task": {
+    "properties": {
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id"
+    ],
+    "type": "object"
+  },
+  "get_user_analytics": {
+    "properties": {
+      "end": {
+        "type": "string"
+      },
+      "metric_name": {
+        "type": "string"
+      },
+      "start": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "start",
+      "end",
+      "metric_name"
+    ],
+    "type": "object"
+  },
+  "get_working_hours": {
+    "properties": {},
+    "type": "object"
+  },
+  "health_check": {
+    "properties": {},
+    "type": "object"
+  },
+  "list_available_policy_types": {
+    "properties": {},
+    "type": "object"
+  },
+  "list_completed_tasks": {
+    "properties": {
+      "limit": {
+        "default": 50,
+        "type": "integer"
+      }
+    },
+    "type": "object"
+  },
+  "list_events": {
+    "properties": {
+      "calendar_ids": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "end": {
+        "type": "string"
+      },
+      "event_type": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "start": {
+        "type": "string"
+      },
+      "thin": {
+        "default": true,
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "start",
+      "end"
+    ],
+    "type": "object"
+  },
+  "list_habits": {
+    "properties": {},
+    "type": "object"
+  },
+  "list_one_on_one_instances": {
+    "properties": {
+      "one_on_one_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "one_on_one_id"
+    ],
+    "type": "object"
+  },
+  "list_one_on_one_invites": {
+    "properties": {},
+    "type": "object"
+  },
+  "list_one_on_ones": {
+    "properties": {
+      "include_instances": {
+        "default": false,
+        "type": "boolean"
+      }
+    },
+    "type": "object"
+  },
+  "list_people": {
+    "properties": {},
+    "type": "object"
+  },
+  "list_people_subscriptions": {
+    "properties": {},
+    "type": "object"
+  },
+  "list_personal_events": {
+    "properties": {
+      "end": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "limit": {
+        "default": 50,
+        "type": "integer"
+      },
+      "start": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    },
+    "type": "object"
+  },
+  "list_schedule_policies": {
+    "properties": {},
+    "type": "object"
+  },
+  "list_tasks": {
+    "properties": {
+      "limit": {
+        "default": 50,
+        "type": "integer"
+      },
+      "status": {
+        "default": "NEW,SCHEDULED,IN_PROGRESS",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "lock_focus_block": {
+    "properties": {
+      "calendar_id": {
+        "type": "integer"
+      },
+      "event_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "calendar_id",
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "lock_habit_instance": {
+    "properties": {
+      "event_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "mark_habit_done": {
+    "properties": {
+      "event_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "mark_task_complete": {
+    "properties": {
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id"
+    ],
+    "type": "object"
+  },
+  "move_event": {
+    "properties": {
+      "end_time": {
+        "type": "string"
+      },
+      "event_id": {
+        "type": "string"
+      },
+      "start_time": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "event_id",
+      "start_time",
+      "end_time"
+    ],
+    "type": "object"
+  },
+  "pin_event": {
+    "properties": {
+      "calendar_id": {
+        "type": "integer"
+      },
+      "event_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "calendar_id",
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "plan_work": {
+    "properties": {
+      "date_time": {
+        "type": "string"
+      },
+      "duration_minutes": {
+        "type": "integer"
+      },
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id",
+      "date_time",
+      "duration_minutes"
+    ],
+    "type": "object"
+  },
+  "prioritize_task": {
+    "properties": {
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id"
+    ],
+    "type": "object"
+  },
+  "reschedule_focus_block": {
+    "properties": {
+      "calendar_id": {
+        "type": "integer"
+      },
+      "end_time": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "event_id": {
+        "type": "string"
+      },
+      "start_time": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    },
+    "required": [
+      "calendar_id",
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "reschedule_one_on_one": {
+    "properties": {
+      "event_id": {
+        "type": "string"
+      },
+      "new_start": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "one_on_one_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "one_on_one_id",
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "restart_task": {
+    "properties": {
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id"
+    ],
+    "type": "object"
+  },
+  "set_event_rsvp": {
+    "properties": {
+      "calendar_id": {
+        "type": "integer"
+      },
+      "event_id": {
+        "type": "string"
+      },
+      "rsvp_status": {
+        "type": "string"
+      },
+      "send_updates": {
+        "default": true,
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "calendar_id",
+      "event_id",
+      "rsvp_status"
+    ],
+    "type": "object"
+  },
+  "skip_habit": {
+    "properties": {
+      "event_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "skip_one_on_one_day": {
+    "properties": {
+      "event_id": {
+        "type": "string"
+      },
+      "one_on_one_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "one_on_one_id",
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "skip_one_on_one_week": {
+    "properties": {
+      "event_id": {
+        "type": "string"
+      },
+      "one_on_one_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "one_on_one_id",
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "snooze_task": {
+    "properties": {
+      "snooze_option": {
+        "type": "string"
+      },
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id",
+      "snooze_option"
+    ],
+    "type": "object"
+  },
+  "start_habit": {
+    "properties": {
+      "lineage_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "lineage_id"
+    ],
+    "type": "object"
+  },
+  "start_task": {
+    "properties": {
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id"
+    ],
+    "type": "object"
+  },
+  "stop_habit": {
+    "properties": {
+      "lineage_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "lineage_id"
+    ],
+    "type": "object"
+  },
+  "stop_task": {
+    "properties": {
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id"
+    ],
+    "type": "object"
+  },
+  "sync_people": {
+    "properties": {},
+    "type": "object"
+  },
+  "unarchive_task": {
+    "properties": {
+      "task_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "task_id"
+    ],
+    "type": "object"
+  },
+  "unlock_focus_block": {
+    "properties": {
+      "calendar_id": {
+        "type": "integer"
+      },
+      "event_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "calendar_id",
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "unlock_habit_instance": {
+    "properties": {
+      "event_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "unpin_event": {
+    "properties": {
+      "calendar_id": {
+        "type": "integer"
+      },
+      "event_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "calendar_id",
+      "event_id"
+    ],
+    "type": "object"
+  },
+  "update_focus_settings": {
+    "properties": {
+      "defense_aggression": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "enabled": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "ideal_duration_mins": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "max_duration_mins": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "min_duration_mins": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "settings_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "settings_id"
+    ],
+    "type": "object"
+  },
+  "update_habit": {
+    "properties": {
+      "defense_aggression": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "description": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "duration_max_mins": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "duration_min_mins": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "enabled": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "event_type": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "frequency": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "ideal_days": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "ideal_time": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "lineage_id": {
+        "type": "integer"
+      },
+      "title": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    },
+    "required": [
+      "lineage_id"
+    ],
+    "type": "object"
+  },
+  "update_one_on_one": {
+    "properties": {
+      "duration_minutes": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "ideal_time": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "notes": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "one_on_one_id": {
+        "type": "integer"
+      },
+      "recurrence": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "title": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    },
+    "required": [
+      "one_on_one_id"
+    ],
+    "type": "object"
+  },
+  "update_schedule_policy": {
+    "properties": {
+      "body": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "policy_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "policy_id",
+      "body"
+    ],
+    "type": "object"
+  },
+  "update_task": {
+    "properties": {
+      "due_date": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "duration_minutes": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "max_chunk_size_minutes": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "min_chunk_size_minutes": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "notes": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "priority": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "snooze_until": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "status": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "task_id": {
+        "type": "integer"
+      },
+      "title": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    },
+    "required": [
+      "task_id"
+    ],
+    "type": "object"
+  },
+  "verify_connection": {
+    "properties": {},
+    "type": "object"
+  }
+}

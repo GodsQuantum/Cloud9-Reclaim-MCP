@@ -23,11 +23,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://gitlab.com/universalamateur1/reclaim-mcp-server"
-Repository = "https://gitlab.com/universalamateur1/reclaim-mcp-server"
-Documentation = "https://gitlab.com/universalamateur1/reclaim-mcp-server/-/blob/main/docs/API.md"
-Changelog = "https://gitlab.com/universalamateur1/reclaim-mcp-server/-/blob/main/CHANGELOG.md"
-"Bug Tracker" = "https://gitlab.com/universalamateur1/reclaim-mcp-server/-/issues"
+Homepage = "https://github.com/GodsQuantum/Cloud9-Reclaim-MCP"
+Repository = "https://github.com/GodsQuantum/Cloud9-Reclaim-MCP"
+Documentation = "https://github.com/GodsQuantum/Cloud9-Reclaim-MCP/blob/main/docs/API.md"
+Changelog = "https://github.com/GodsQuantum/Cloud9-Reclaim-MCP/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/GodsQuantum/Cloud9-Reclaim-MCP/issues"
 
 [project.scripts]
 reclaim-mcp-server = "reclaim_mcp.server:main"
